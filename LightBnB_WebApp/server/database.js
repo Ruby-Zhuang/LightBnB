@@ -11,12 +11,10 @@ const pool = new Pool({
   database: 'lightbnb'
 });
 
-// // Query string
 // const queryString = `
 //   SELECT * FROM properties LIMIT $1;
 // `;
 
-// // Values from user
 // const values = [];
 
 // // Run query on database
@@ -34,7 +32,7 @@ const pool = new Pool({
  * @param {String} email The email of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithEmail = function(email) {
+const getUserWithEmail = function (email) {
   const queryString = `SELECT * FROM users WHERE email = $1;`; // Query string
   const values = [email]; // Values from user
 
@@ -53,7 +51,7 @@ exports.getUserWithEmail = getUserWithEmail;
  * @param {string} id The id of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithId = function(id) {
+const getUserWithId = function (id) {
   const queryString = `SELECT * FROM users WHERE id = $1;`; // Query string
   const values = [id]; // Values from user
 
@@ -73,7 +71,7 @@ exports.getUserWithId = getUserWithId;
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
-const addUser = function(user) {
+const addUser = function (user) {
   const queryString = `
     INSERT INTO users(name, email, password) 
     VALUES ($1, $2, $3) RETURNING *;
@@ -97,9 +95,28 @@ exports.addUser = addUser;
  * @param {string} guest_id The id of the user.
  * @return {Promise<[{}]>} A promise to the reservations.
  */
-const getAllReservations = function (guest_id, limit = 10) {
-  return getAllProperties(null, 2);
-}
+const getAllReservations = function(guest_id, limit = 10) {
+  const queryString = `
+    SELECT properties.*, reservations.*, avg(rating) as average_rating
+    FROM reservations
+    JOIN properties ON reservations.property_id = properties.id
+    JOIN property_reviews ON properties.id = property_reviews.property_id
+    WHERE reservations.guest_id = $1
+    AND reservations.end_date < now()::date
+    GROUP BY properties.id, reservations.id
+    ORDER BY reservations.start_date
+    LIMIT $2;
+  `;
+  const values = [guest_id, limit];
+
+  // Run query on database
+  return pool
+    .query(queryString, values)
+    .then((result) => result.rows) // Return array of reservation objects from query
+    .catch((error) => {
+      console.log(error.message);
+    });
+};
 exports.getAllReservations = getAllReservations;
 
 /// Properties
