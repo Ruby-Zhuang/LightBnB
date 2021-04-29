@@ -1,1 +1,1 @@
-![LighthouseBnB ERD]()
+![LighthouseBnB ERD](https://github.com/Ruby-Zhuang/LightBnB/blob/main/docs/LighthouseBnB%20ERD.jpg?raw=true)
