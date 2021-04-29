@@ -1,6 +1,4 @@
-const {
-  Pool
-} = require('pg');
+const { Pool } = require('pg');
 const properties = require('./json/properties.json');
 const users = require('./json/users.json');
 
@@ -11,9 +9,9 @@ const pool = new Pool({
   database: 'lightbnb'
 });
 
-/////////////////////////////////////
-// Users ----------------------------
-/////////////////////////////////////
+///////////////////////////////////////////////////
+// Users ------------------------------------------
+///////////////////////////////////////////////////
 
 /**
  * Get a single user from the database given their email.
@@ -75,9 +73,9 @@ const addUser = function (user) {
 };
 exports.addUser = addUser;
 
-/////////////////////////////////////
-// Reservations ---------------------
-/////////////////////////////////////
+///////////////////////////////////////////////////
+// Reservations -----------------------------------
+///////////////////////////////////////////////////
 
 /**
  * Get all reservations for a single user.
@@ -108,9 +106,9 @@ const getAllReservations = function (guest_id, limit = 10) {
 };
 exports.getAllReservations = getAllReservations;
 
-/////////////////////////////////////
-// Properties -----------------------
-/////////////////////////////////////
+///////////////////////////////////////////////////
+// Properties -------------------------------------
+///////////////////////////////////////////////////
 
 /**
  * Get all properties.
@@ -191,10 +189,7 @@ const addProperty = function(property) {
   // Run query on database
   return pool
     .query(queryString, queryParams)
-    .then((result) => {
-      console.log(result.rows);
-      return result.rows;
-    }) // Return property object CHECK THIS!!!!!!!!!!!!!!! should it be rows[0]?
+    .then((result) => result.rows[0]) // Return property object
     .catch((error) => {
       console.log(error.message);
     });
