@@ -32,13 +32,13 @@ const pool = new Pool({
  * @param {String} email The email of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithEmail = function (email) {
+const getUserWithEmail = function(email) {
   const queryString = `SELECT * FROM users WHERE email = $1;`; // Query string
-  const values = [email]; // Values from user
+  const queryParams = [email]; // Values from user
 
   // Run query on database
   return pool
-    .query(queryString, values)
+    .query(queryString, queryParams)
     .then((result) => result.rows[0] || null) // Return user object if exists, otherwise null
     .catch((error) => {
       console.log(error.message);
@@ -53,11 +53,11 @@ exports.getUserWithEmail = getUserWithEmail;
  */
 const getUserWithId = function (id) {
   const queryString = `SELECT * FROM users WHERE id = $1;`; // Query string
-  const values = [id]; // Values from user
+  const queryParams = [id]; // Values from user
 
   // Run query on database
   return pool
-    .query(queryString, values)
+    .query(queryString, queryParams)
     .then((result) => result.rows[0] || null) // Return user object if exists, otherwise null
     .catch((error) => {
       console.log(error.message);
@@ -76,11 +76,11 @@ const addUser = function (user) {
     INSERT INTO users(name, email, password) 
     VALUES ($1, $2, $3) RETURNING *;
   `;
-  const values = [user.name, user.email, user.password]; // Values from user
+  const queryParams = [user.name, user.email, user.password]; // Values from user
 
   // Run query on database
   return pool
-    .query(queryString, values)
+    .query(queryString, queryParams)
     .then((result) => result.rows[0]) // Return user object
     .catch((error) => {
       console.log(error.message);
@@ -107,11 +107,11 @@ const getAllReservations = function(guest_id, limit = 10) {
     ORDER BY reservations.start_date
     LIMIT $2;
   `;
-  const values = [guest_id, limit];
+  const queryParams = [guest_id, limit];
 
   // Run query on database
   return pool
-    .query(queryString, values)
+    .query(queryString, queryParams)
     .then((result) => result.rows) // Return array of reservation objects from query
     .catch((error) => {
       console.log(error.message);
@@ -127,19 +127,60 @@ exports.getAllReservations = getAllReservations;
  * @param {*} limit The number of results to return.
  * @return {Promise<[{}]>}  A promise to the properties.
  */
-const getAllProperties = function (options, limit = 10) {
-  const queryString = `SELECT * FROM properties LIMIT $1;`; // Query string
-  const values = [limit]; // Values from user
+const getAllProperties = function(options, limit = 10) {
+  // 1
+  const queryParams = [];
+  // 2
+  let queryString = `
+    SELECT properties.*, avg(property_reviews.rating) as average_rating
+    FROM properties
+    JOIN property_reviews ON properties.id = property_id
+  `;
 
-  // Run query on database
-  return pool
-    .query(queryString, values)
-    .then((result) => result.rows) // Will return result.rows to next .then in apiRoutes file
-    .catch((error) => {
-      console.log(error.message);
-    });
-  // Will .catch ever get executed?
+  // 3
+  if (options.city) {
+    queryParams.push(`%${options.city}%`);
+    queryString += `WHERE city LIKE $${queryParams.length} `; // Will always be first queryParam if specified
+  }
 
+  if (options.owner_id) {
+    queryParams.push(options.owner_id);
+    const appendOptionKeyword = queryParams.length === 1 ? 'WHERE' : 'AND';
+    queryString += appendOptionKeyword + ` owner_id = $${queryParams.length} `;
+  }
+
+  if (options.minimum_price_per_night) {
+    queryParams.push(options.minimum_price_per_night * 100);
+    const appendOptionKeyword = queryParams.length === 1 ? 'WHERE' : 'AND'; // Start WHERE clause if this is first filter criteria, otherwise join with previous filters by AND
+    queryString += appendOptionKeyword + ` cost_per_night >= $${queryParams.length} `;
+  }
+
+  if (options.maximum_price_per_night) {
+    queryParams.push(options.maximum_price_per_night * 100);
+    const appendOptionKeyword = queryParams.length === 1 ? 'WHERE' : 'AND';
+    queryString += appendOptionKeyword + ` cost_per_night <= $${queryParams.length} `;
+  }
+
+  if (options.minimum_rating) {
+    queryParams.push(options.minimum_rating);
+    const appendOptionKeyword = queryParams.length === 1 ? 'WHERE' : 'AND';
+    queryString += appendOptionKeyword + ` rating >= $${queryParams.length} `;
+  }
+
+  // 4
+  queryParams.push(limit);
+  queryString += `
+    GROUP BY properties.id
+    ORDER BY cost_per_night
+    LIMIT $${queryParams.length};
+  `;
+
+  // 5
+  console.log(queryString, queryParams);
+
+  // 6
+  return pool.query(queryString, queryParams)
+    .then((result) => result.rows);
 };
 exports.getAllProperties = getAllProperties;
 
