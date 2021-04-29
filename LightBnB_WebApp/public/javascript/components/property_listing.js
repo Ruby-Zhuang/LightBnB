@@ -1,6 +1,7 @@
 $(() => {
   window.propertyListing = {};
   
+  // eslint-disable-next-line func-style
   function createListing(property, isReservation) {
     return `
     <article class="property-listing">

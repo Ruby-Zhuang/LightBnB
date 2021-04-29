@@ -18,7 +18,7 @@ const pool = new Pool({
  * @param {String} email The email of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithEmail = function (email) {
+const getUserWithEmail = function(email) {
   const queryString = `SELECT * FROM users WHERE email = $1;`; // Query string
   const queryParams = [email]; // Values from user
 
@@ -26,9 +26,7 @@ const getUserWithEmail = function (email) {
   return pool
     .query(queryString, queryParams)
     .then((result) => result.rows[0] || null) // Return user object if exists, otherwise null
-    .catch((error) => {
-      console.log(error.message);
-    });
+    .catch((error) => console.log(error.message));
 };
 exports.getUserWithEmail = getUserWithEmail;
 
@@ -45,9 +43,7 @@ const getUserWithId = function (id) {
   return pool
     .query(queryString, queryParams)
     .then((result) => result.rows[0] || null) // Return user object if exists, otherwise null
-    .catch((error) => {
-      console.log(error.message);
-    });
+    .catch((error) => console.log(error.message));
 };
 exports.getUserWithId = getUserWithId;
 
@@ -56,7 +52,7 @@ exports.getUserWithId = getUserWithId;
  * @param {{name: string, password: string, email: string}} user
  * @return {Promise<{}>} A promise to the user.
  */
-const addUser = function (user) {
+const addUser = function(user) {
   const queryString = `
     INSERT INTO users(name, email, password) 
     VALUES ($1, $2, $3) RETURNING *;
@@ -67,9 +63,7 @@ const addUser = function (user) {
   return pool
     .query(queryString, queryParams)
     .then((result) => result.rows[0]) // Return user object
-    .catch((error) => {
-      console.log(error.message);
-    });
+    .catch((error) => console.log(error.message));
 };
 exports.addUser = addUser;
 
@@ -100,9 +94,7 @@ const getAllReservations = function (guest_id, limit = 10) {
   return pool
     .query(queryString, queryParams)
     .then((result) => result.rows) // Return array of reservation objects from query
-    .catch((error) => {
-      console.log(error.message);
-    });
+    .catch((error) => console.log(error.message));
 };
 exports.getAllReservations = getAllReservations;
 
@@ -164,7 +156,7 @@ const getAllProperties = function (options, limit = 10) {
     LIMIT $${queryParams.length};
   `;
 
-  // console.log(queryString, queryParams);
+  console.log(queryString, queryParams);
 
   // 5
   return pool.query(queryString, queryParams)
@@ -190,8 +182,6 @@ const addProperty = function(property) {
   return pool
     .query(queryString, queryParams)
     .then((result) => result.rows[0]) // Return property object
-    .catch((error) => {
-      console.log(error.message);
-    });
+    .catch((error) => console.log(error.message));
 };
 exports.addProperty = addProperty;
