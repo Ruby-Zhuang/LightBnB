@@ -26,16 +26,17 @@ const getUserWithEmail = function(email) {
   return pool
     .query(queryString, queryParams)
     .then((result) => result.rows[0] || null) // Return user object if exists, otherwise null
-    .catch((error) => console.log(error.message));
+    .catch((error) => console.log(error.message)); // If query is wrong or database issues (ex. wrong creditials)
 };
 exports.getUserWithEmail = getUserWithEmail;
+
 
 /**
  * Get a single user from the database given their id.
  * @param {string} id The id of the user.
  * @return {Promise<{}>} A promise to the user.
  */
-const getUserWithId = function (id) {
+const getUserWithId = function(id) {
   const queryString = `SELECT * FROM users WHERE id = $1;`; // Query string
   const queryParams = [id]; // Values from user
 
@@ -43,7 +44,7 @@ const getUserWithId = function (id) {
   return pool
     .query(queryString, queryParams)
     .then((result) => result.rows[0] || null) // Return user object if exists, otherwise null
-    .catch((error) => console.log(error.message));
+    .catch((error) => console.log(error.message)); // If query is wrong or database issues (ex. wrong creditials)
 };
 exports.getUserWithId = getUserWithId;
 
@@ -63,7 +64,7 @@ const addUser = function(user) {
   return pool
     .query(queryString, queryParams)
     .then((result) => result.rows[0]) // Return user object
-    .catch((error) => console.log(error.message));
+    .catch((error) => console.log(error.message)); // If query is wrong or database issues (ex. wrong creditials)
 };
 exports.addUser = addUser;
 
@@ -94,7 +95,7 @@ const getAllReservations = function (guest_id, limit = 10) {
   return pool
     .query(queryString, queryParams)
     .then((result) => result.rows) // Return array of reservation objects from query
-    .catch((error) => console.log(error.message));
+    .catch((error) => console.log(error.message)); // If query is wrong or database issues (ex. wrong creditials)
 };
 exports.getAllReservations = getAllReservations;
 
@@ -111,6 +112,7 @@ exports.getAllReservations = getAllReservations;
 const getAllProperties = function (options, limit = 10) {
   // 1
   const queryParams = [];
+
   // 2
   let queryString = `
     SELECT properties.*, avg(property_reviews.rating) as average_rating
@@ -156,11 +158,12 @@ const getAllProperties = function (options, limit = 10) {
     LIMIT $${queryParams.length};
   `;
 
-  console.log(queryString, queryParams);
+  // console.log(queryString, queryParams);
 
   // 5
   return pool.query(queryString, queryParams)
-    .then((result) => result.rows);
+    .then((result) => result.rows)
+    .catch((error) => console.log(error.message)); // If query is wrong or database issues (ex. wrong creditials)
 };
 exports.getAllProperties = getAllProperties;
 
@@ -176,12 +179,13 @@ const addProperty = function(property) {
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *;
   `;
   // const queryParams = [...Object.values(property)]; // Values from user
+  // const p = property;
   const queryParams = [property.owner_id, property.title, property.description, property.thumbnail_photo_url, property.cover_photo_url, property.cost_per_night, property.street, property.city, property.province, property.post_code, property.country, property.parking_spaces, property.number_of_bathrooms, property.number_of_bedrooms]; // Values from user
 
   // Run query on database
   return pool
     .query(queryString, queryParams)
     .then((result) => result.rows[0]) // Return property object
-    .catch((error) => console.log(error.message));
+    .catch((error) => console.log(error.message)); // If query is wrong or database issues (ex. wrong creditials)
 };
 exports.addProperty = addProperty;
